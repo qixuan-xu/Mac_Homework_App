@@ -30,5 +30,4 @@ def get_history(file_name, data_name):
     history = data.get(data_name, [])
     if not isinstance(history, list):
         return []
-
     return history

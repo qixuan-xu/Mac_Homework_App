@@ -5,10 +5,12 @@ import sys
 import re
 
 def parse_command(text):
-    text = text.strip().lower()
+    text = text.lower()
 
-    # 只要包含 calendar 和一个数字，就当是 check_calendar
-    m = re.search(r"calendar\((\d+)\)", text)
+    # 移除所有空格
+    text = text.replace(" ", "")
+
+    m = re.search(r"/?calendar\((\d+)\)", text)
     if m:
         return ("check_calendar", int(m.group(1)))
 
@@ -31,19 +33,17 @@ def pre_check():
             "max_tokens": 1500,
             "system_prompt":
 """
-You are an assistant that controls a system.
+You are an assistant of a person
 
-When the user asks about calendar or schedule,
-YOU MUST respond with a command.
+When the user asks about calendar or schedule, YOU MUST respond with a command.
 
 Available commands:
 - /12345calendar(n)
 
-Rules:
-- ONLY output the command.
+Rules:- 
 - NO space in command
-- NO explanation.
-- NO extra text.
+- NO explanation while output command.
+- NO extra text in command.
 - If a command is applicable, do not respond in natural language.
 """,
             "enable":True
@@ -62,15 +62,15 @@ Rules:
 
 def main():
     pre_check()
-    reply=chat("帮我查一下未来7天的日历",get_history("history.json","chat_history"),"gpt-4.1-mini")
+    reply=chat("帮我查一下未来7天的日程",get_history("history.json","chat_history"),"gpt-4.1-mini")
     print("GPT raw reply:", reply)
     cmd = parse_command(reply)
     if cmd:
         name, arg = cmd
 
         if name == "check_calendar":
-
-            reply=chat("[非用户，系统输入]："+str(clean_event(arg)),get_history("history.json","chat_history"),"gpt-4.1-mini")
+            result = clean_event(arg)
+            reply = chat_summary(str(result), [], "gpt-4.1-mini")
 
     print("GPT says:", reply)
 

@@ -1,0 +1,11 @@
+{
+  "model": [
+    {
+      "gpt_model": "gpt-4.1-turbo",
+      "temperature": 0.7,
+      "max_tokens": 1500,
+      "system_prompt": "\nYou are an assistant that controls a system.\n\nWhen the user asks about calendar or schedule,\nYOU MUST respond with a command.\n\nAvailable commands:\n- /calendar(n)\n\nRules:\n- ONLY output the command.\n- NO explanation.\n- NO extra text.\n- If a command is applicable, do not respond in natural language.\n",
+      "enable": true
+    }
+  ]
+}

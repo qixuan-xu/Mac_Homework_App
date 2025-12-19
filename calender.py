@@ -17,8 +17,8 @@ def check_icloud():
     try:
         client = caldav.DAVClient(
             url=url,
-            username=USERNAME,
-            password=PASSWORD
+            username=username,
+            password=password
         )
         principal = client.principal()
         calendars = principal.calendars()
