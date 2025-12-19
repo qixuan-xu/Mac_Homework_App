@@ -2,9 +2,23 @@ from openai import OpenAI               #加载OpenAI
 import os                               #加载os
 from dotenv import load_dotenv          #加载env api
 
+def get_chat_history():
+    import jsonos
+    return jsonos.get_history("chat_history.json","chat_history")
 
 load_dotenv("api_key.env")              #加载api到环境变量
 #print(os.getenv("OPENAI_API_KEY"))      #测试用 输出api
+
+
+def get_system_prompt():
+    from jsonos import get_history
+    model_cfg = get_history("setting.json", "model")
+    if model_cfg and isinstance(model_cfg, list):
+        return model_cfg[0].get("system_prompt", "")
+    elif isinstance(model_cfg, dict):
+        return model_cfg.get("system_prompt", "")
+    return ""
+
 
 def api_check():
     try:
@@ -22,30 +36,40 @@ def api_check():
         print("API check failed, please check your api_key.env file.")
         return 0
 
-def chat(user_input,history,gptmodel):
+def chat(user_input, history, gptmodel):
+    from openai import OpenAI
 
-#   Example:
-#   ("牛顿三定律是什么？",
-#   [{"role": "system", "content": "You are a helpful assistant."},
-#   {"role": "user", "content": "你好，你是谁？"},
-#   {"role": "assistant", "content": "我是一个可以帮助你学习和解决问题的助手。"}],
-#   "gpt-4.1-mini"
-#]
+    client = OpenAI()
 
+    system_prompt = get_system_prompt()
 
+    messages = []
 
+    # ✅ 1. 注入 system（只一次）
+    if system_prompt:
+        messages.append({
+            "role": "system",
+            "content": system_prompt
+        })
 
-                                        #创建回答
+    # ✅ 2. 注入历史
+
+    for msg in history:
+        if isinstance(msg, dict):
+            messages.append(msg)
+
+    # ✅ 3. 当前用户输入
+    messages.append({
+        "role": "user",
+        "content": user_input
+    })
+
     response = client.chat.completions.create(
-        model=gptmodel,           #模型
-        messages=[
-            history,
-            {"role": "user", "content": user_input}
-        ]
+        model=gptmodel,
+        messages=messages,
+        temperature=0.2  # ⭐ command 模式一定要低
     )
-    try:
-        reply = response.choices[0].message.content
-    except:
-        return "chat_reply_fail"
-    return reply
+
+    return response.choices[0].message.content.strip()
+
 
