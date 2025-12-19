@@ -44,7 +44,6 @@ def chat(user_input, history, gptmodel):
     system_prompt = get_system_prompt()
 
     messages = []
-
     # ✅ 1. 注入 system（只一次）
     if system_prompt:
         messages.append({

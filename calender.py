@@ -30,7 +30,6 @@ def check_icloud():
 
 
 
-
 def load_calendar(days=7):
     client = caldav.DAVClient(
         url=url,

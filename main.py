@@ -16,6 +16,7 @@ def parse_command(text):
 
 
 
+
 def pre_check():
     if api_check() == 0:
         sys.exit(1)
