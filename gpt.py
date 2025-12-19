@@ -4,7 +4,23 @@ from dotenv import load_dotenv          #加载env api
 
 
 load_dotenv("api_key.env")              #加载api到环境变量
-print(os.getenv("OPENAI_API_KEY"))      #测试用 输出api
+#print(os.getenv("OPENAI_API_KEY"))      #测试用 输出api
+
+def api_check():
+    try:
+        global client
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        api_check_result = os.getenv("OPENAI_API_KEY")
+    except:
+        return 0
+
+
+    if api_check_result != 0:
+        print ("API check succeed, key: "+api_check_result[0:12]+"****"+api_check_result[-4:])
+        return 1
+    else:
+        print("API check failed, please check your api_key.env file.")
+        return 0
 
 def chat(user_input,history,gptmodel):
 
@@ -17,11 +33,7 @@ def chat(user_input,history,gptmodel):
 #]
 
 
-    # 创建客户端（会自动从环境变量读 OPENAI_API_KEY）
-    try:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    except:
-        return "api_connect_fail"       #返回报错 api链接
+
 
                                         #创建回答
     response = client.chat.completions.create(
@@ -36,3 +48,4 @@ def chat(user_input,history,gptmodel):
     except:
         return "chat_reply_fail"
     return reply
+
