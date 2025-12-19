@@ -1,84 +1,103 @@
-import sys  # 用于程序退出（sys.exit）
-from PySide6.QtCore import Qt  # Qt 的核心枚举（比如鼠标按键）
+import sys
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QApplication,  # 整个 Qt 应用的入口
-    QWidget,       # 窗口基类
-    QLineEdit,     # 文本输入框
-    QLabel,        # 文本标签
-    QPushButton,   # 按钮
-    QHBoxLayout,   # 水平布局
+    QApplication,
+    QWidget,
+    QLineEdit,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QHBoxLayout,
 )
 
 
 class DraggableWindow(QWidget):
-    """
-    可拖拽的主窗口
-    —— 鼠标按住窗口任意位置即可拖动
-    """
+    """Main window that can be dragged from anywhere."""
 
     def __init__(self):
         super().__init__()
-        self._drag_pos = None  # 记录鼠标按下时的位置，用于计算拖动距离
+        self._drag_pos = None
 
     def mousePressEvent(self, event):
-        """鼠标按下事件"""
-        if event.button() == Qt.LeftButton:  # 判断是否为鼠标左键
-            # 记录鼠标全局位置 与 窗口左上角的偏移量
-            self._drag_pos = (
-                event.globalPosition().toPoint()
-                - self.frameGeometry().topLeft()
-            )
-            event.accept()  # 告诉 Qt 这个事件已处理
+        if event.button() == Qt.LeftButton:
+            self._drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            event.accept()
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        """鼠标移动事件（用于拖动窗口）"""
         if event.buttons() & Qt.LeftButton and self._drag_pos is not None:
-            # 根据当前鼠标位置减去偏移量，移动窗口
             self.move(event.globalPosition().toPoint() - self._drag_pos)
             event.accept()
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        """鼠标释放事件"""
         if event.button() == Qt.LeftButton:
-            self._drag_pos = None  # 清空拖动状态
+            self._drag_pos = None
             event.accept()
         super().mouseReleaseEvent(event)
 
 
 def main():
-    """程序主入口"""
-    app = QApplication([])  # 创建 Qt 应用
-    window = DraggableWindow()  # 创建主窗口
+    app = QApplication([])
+    window = DraggableWindow()
 
-    layout = QHBoxLayout()  # 创建水平布局
-    window.setFixedSize(800, 600)  # 固定窗口大小
+    # 允许改大小（初始 + 最小）
+    window.resize(800, 600)
+    window.setMinimumSize(420, 240)
 
-    label = QLabel("Hello from my Mac app!")  # 显示文本
-    button = QPushButton("Click Me!")         # 按钮
-    textbox = QLineEdit()                     # 输入框
+    # ===== 1) 顶部：标题区（水平布局）=====
+    title = QLabel("Mac Homework App")
+    title.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+    title.setStyleSheet("font-size: 20px; font-weight: 600;")  # 简单让标题更像 App
+
+    # 如果你以后想在标题右侧加一个状态/图标，这里就是位置
+    top_bar = QHBoxLayout()
+    top_bar.addWidget(title)
+    top_bar.addStretch()  # 把右侧顶开（右边留空）
+
+    # ===== 2) 中间：输入区（垂直布局）=====
+    prompt = QLabel("请输入内容：")
+    textbox = QLineEdit()
+    textbox.setPlaceholderText("在这里输入…")
+
+    middle = QVBoxLayout()
+    middle.addWidget(prompt)
+    middle.addWidget(textbox)
+
+    # ===== 3) 底部：按钮栏（水平布局，按钮靠右）=====
+    label = QLabel("Hello from my Mac app!")
+    label.setWordWrap(True)  # 文本长了自动换行（更像 App）
+
+    button = QPushButton("Submit")
 
     def on_button_clicked():
-        """按钮点击后的回调函数"""
-        entered_text = textbox.text()  # 获取输入框内容
-        label.setText(
-            f'Button clicked! You entered: {entered_text}'
-        )  # 更新标签文本
+        entered_text = textbox.text().strip()
+        if not entered_text:
+            label.setText("你还没输入内容。")
+        else:
+            label.setText(f"已提交：{entered_text}")
 
-    button.clicked.connect(on_button_clicked)  # 绑定按钮点击事件
+    button.clicked.connect(on_button_clicked)
 
-    # 将控件加入布局（从左到右）
-    layout.addWidget(textbox)
-    layout.addWidget(label)
-    layout.addWidget(button)
+    bottom_bar = QHBoxLayout()
+    bottom_bar.addWidget(label)     # 左侧信息区
+    bottom_bar.addStretch()         # 把按钮推到右边
+    bottom_bar.addWidget(button)    # 右侧按钮
 
-    window.setLayout(layout)  # 设置窗口布局
-    window.show()             # 显示窗口
+    # ===== 总布局：垂直（上-中-下）=====
+    root = QVBoxLayout()
+    root.setContentsMargins(30, 20, 30, 20)  # 内边距（更像 App）
+    root.setSpacing(12)                      # 控件间距
 
-    sys.exit(app.exec())      # 启动事件循环并安全退出
+    root.addLayout(top_bar)
+    root.addLayout(middle)
+    root.addStretch()        # 中间区域和底部区域之间留弹性空间
+    root.addLayout(bottom_bar)
+
+    window.setLayout(root)
+    window.show()
+    sys.exit(app.exec())
 
 
-# 只有直接运行该文件时才执行 main()
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
